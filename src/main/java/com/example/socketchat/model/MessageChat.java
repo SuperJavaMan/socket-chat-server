@@ -1,6 +1,6 @@
 package com.example.socketchat.model;
 
-public class Message {
+public class MessageChat {
     private String username;
     private String body;
     private Type type;
@@ -12,10 +12,10 @@ public class Message {
 
         }
 
-    public Message() {
+    public MessageChat() {
     }
 
-    public Message(String body) {
+    public MessageChat(String body) {
         this.body = body;
     }
 
