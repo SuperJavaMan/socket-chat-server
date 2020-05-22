@@ -4,8 +4,12 @@ import com.example.socketchat.model.MessageChat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
@@ -20,12 +24,7 @@ public class WebSocketEventListener {
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-        Principal principal = event.getUser();
-        if (principal == null) {
             sendEventMsg(MessageChat.Type.JOIN, event.getMessage());
-        } else {
-            throw new RuntimeException("Not authorized");
-        }
     }
 
     @EventListener
@@ -36,8 +35,15 @@ public class WebSocketEventListener {
     private void sendEventMsg(MessageChat.Type type, org.springframework.messaging.Message<byte[]> message) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
         String username = null;
-        if (headerAccessor.getSessionAttributes() != null)
+        if (headerAccessor.getSessionAttributes() != null) {
             username = (String) headerAccessor.getSessionAttributes().get("username");
+        } else {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (!(authentication instanceof AnonymousAuthenticationToken)) {
+                username = authentication.getName();
+            }
+
+        }
         if (username != null) {
             MessageChat msg = new MessageChat();
             msg.setUsername(username);
