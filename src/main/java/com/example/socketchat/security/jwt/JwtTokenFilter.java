@@ -36,7 +36,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         try {
             String jwtToken = getJwtToken(httpServletRequest);
             System.out.println(jwtToken);
-            if (getJwtToken(httpServletRequest)!= null && provider.isJwtTokenValid(jwtToken)) {
+            if (jwtToken == null) {
+                jwtToken = httpServletRequest.getParameter("token");
+            }
+            if (jwtToken != null && provider.isJwtTokenValid(jwtToken)) {
                 log.debug("Extracted token is valid");
                 String username = provider.getUsernameFromJwtToken(jwtToken);
                 UserDetails userPrincipal = service.loadUserByUsername(username);
